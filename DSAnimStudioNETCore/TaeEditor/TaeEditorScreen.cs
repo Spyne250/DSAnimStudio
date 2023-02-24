@@ -213,6 +213,44 @@ namespace DSAnimStudio.TaeEditor
             NotificationManager.PushNotification("Exported text file successfully.");
         }
 
+        public void ExportSingleEventToJSONFile(string textFilePath)
+        {
+            string jsonString = Graph?.SingleAnimationExport();
+
+            File.WriteAllText(textFilePath, jsonString);
+            NotificationManager.PushNotification("Exported JSON file successfully.");
+        }
+
+        public void ImportSingleEventToJSONFile(string textFilePath)
+        {
+
+            var txtFileLines = File.ReadAllText(textFilePath);
+            if (Graph?.SingleAnimationImport(txtFileLines) == true)
+            {
+                NotificationManager.PushNotification($"Successfully imported animation events from JSON file.");
+            }
+
+        }
+
+        public void ExportAllEventsToJSONFile(string textFilePath)
+        {
+            string jsonString = Graph?.AllAnimationsExport();
+
+            File.WriteAllText(textFilePath, jsonString);
+            NotificationManager.PushNotification("Exported JSON file successfully.");
+        }
+
+        public void ImportAllEventsToJSONFile(string textFilePath)
+        {
+
+            var txtFileLines = File.ReadAllText(textFilePath);
+            if (Graph?.AllAnimationsImport(txtFileLines) == true)
+            {
+                NotificationManager.PushNotification($"Successfully imported animation events from JSON file.");
+            }
+
+        }
+
         public void ImmediateExportAllAnimNamesToTextFile(string textFilePath)
         {
             var sb = new StringBuilder();
@@ -360,6 +398,94 @@ namespace DSAnimStudio.TaeEditor
             if (browseDlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 ImmediateExportAllEventsToTextFile(browseDlg.FileName);
+            }
+        }
+
+        public void ShowExportSingleEventToJSONDialog()
+        {
+            var browseDlg = new System.Windows.Forms.SaveFileDialog()
+            {
+                Filter = "JSON file (*.JSON)|*.JSON",
+                ValidateNames = true,
+                CheckFileExists = false,
+                CheckPathExists = true,
+            };
+
+            if (System.IO.File.Exists(FileContainerName))
+            {
+                browseDlg.InitialDirectory = System.IO.Path.GetDirectoryName(FileContainerName);
+                browseDlg.FileName = System.IO.Path.GetFileName(FileContainerName + ".single.json");
+            }
+
+            if (browseDlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ExportSingleEventToJSONFile(browseDlg.FileName);
+            }
+        }
+
+        public void ShowImportSingleEventToJSONDialog()
+        {
+            var browseDlg = new System.Windows.Forms.OpenFileDialog()
+            {
+                Filter = "JSON Files (*.JSON)|*.JSON",
+                ValidateNames = true,
+                CheckFileExists = false,
+                CheckPathExists = true,
+            };
+
+            if (System.IO.File.Exists(FileContainerName))
+            {
+                browseDlg.InitialDirectory = System.IO.Path.GetDirectoryName(FileContainerName);
+                browseDlg.FileName = System.IO.Path.GetFileName(FileContainerName + ".single.json");
+            }
+
+            if (browseDlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ImportSingleEventToJSONFile(browseDlg.FileName);
+            }
+        }
+
+        public void ShowExportAllEventsToJSONDialog()
+        {
+            var browseDlg = new System.Windows.Forms.SaveFileDialog()
+            {
+                Filter = "JSON file (*.JSON)|*.JSON",
+                ValidateNames = true,
+                CheckFileExists = false,
+                CheckPathExists = true,
+            };
+
+            if (System.IO.File.Exists(FileContainerName))
+            {
+                browseDlg.InitialDirectory = System.IO.Path.GetDirectoryName(FileContainerName);
+                browseDlg.FileName = System.IO.Path.GetFileName(FileContainerName + ".all.json");
+            }
+
+            if (browseDlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ExportAllEventsToJSONFile(browseDlg.FileName);
+            }
+        }
+
+        public void ShowImportAllEventsToJSONDialog()
+        {
+            var browseDlg = new System.Windows.Forms.OpenFileDialog()
+            {
+                Filter = "JSON Files (*.JSON)|*.JSON",
+                ValidateNames = true,
+                CheckFileExists = false,
+                CheckPathExists = true,
+            };
+
+            if (System.IO.File.Exists(FileContainerName))
+            {
+                browseDlg.InitialDirectory = System.IO.Path.GetDirectoryName(FileContainerName);
+                browseDlg.FileName = System.IO.Path.GetFileName(FileContainerName + ".all.json");
+            }
+
+            if (browseDlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ImportAllEventsToJSONFile(browseDlg.FileName);
             }
         }
 

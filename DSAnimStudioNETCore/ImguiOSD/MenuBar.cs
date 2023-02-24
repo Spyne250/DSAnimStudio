@@ -532,6 +532,10 @@ namespace DSAnimStudio.ImguiOSD
 
             bool clicked_Tools_ExportSkeletonAndAnims = false;
             bool clicked_Tools_ExportEventTextFile = false;
+            bool clicked_Tools_ExportSingleEventJSON = false;
+            bool clicked_Tools_ImportSingleEventJSON = false;
+            bool clicked_Tools_ExportAllEventsJSON = false;
+            bool clicked_Tools_ImportAllEventsJSON = false;
             bool clicked_Tools_AnimNameExport = false;
             bool clicked_Tools_AnimNameImport = false;
             //bool clicked_Tools_AnimationImporter = false;
@@ -560,6 +564,20 @@ namespace DSAnimStudio.ImguiOSD
 
                 if (ClickItem("Export All Events to Text File...", enabled: Tae?.IsFileOpen == true && !LoadingTaskMan.AnyTasksRunning()))
                     clicked_Tools_ExportEventTextFile = true;
+
+                ImGui.Separator();
+
+                if (ClickItem("Export single animation events to JSON File...", enabled: Tae?.IsFileOpen == true && !LoadingTaskMan.AnyTasksRunning()))
+                    clicked_Tools_ExportSingleEventJSON = true;
+
+                if (ClickItem("Import single animation events JSON File...", enabled: Tae?.IsFileOpen == true && !LoadingTaskMan.AnyTasksRunning()))
+                    clicked_Tools_ImportSingleEventJSON = true;
+
+                if (ClickItem("Export all animation events to JSON File...", enabled: Tae?.IsFileOpen == true && !LoadingTaskMan.AnyTasksRunning()))
+                    clicked_Tools_ExportAllEventsJSON = true;
+
+                if (ClickItem("Import all animation events JSON File...", enabled: Tae?.IsFileOpen == true && !LoadingTaskMan.AnyTasksRunning()))
+                    clicked_Tools_ImportAllEventsJSON = true;
 
                 ImGui.Separator();
 
@@ -711,7 +729,41 @@ namespace DSAnimStudio.ImguiOSD
                 {
                     Tae.ShowExportAllEventsToTextFileDialog();
                 });
-                
+
+            }
+            else if (clicked_Tools_ExportSingleEventJSON)
+            {
+                Main.MainThreadLazyDispatch(() =>
+                {
+                    Tae.ShowExportSingleEventToJSONDialog();
+                });
+
+            }
+            else if (clicked_Tools_ImportSingleEventJSON)
+            {
+
+                Main.MainThreadLazyDispatch(() =>
+                {
+                    Tae.ShowImportSingleEventToJSONDialog();
+                });
+
+            }
+            else if (clicked_Tools_ExportAllEventsJSON)
+            {
+                Main.MainThreadLazyDispatch(() =>
+                {
+                    Tae.ShowExportAllEventsToJSONDialog();
+                });
+
+            }
+            else if (clicked_Tools_ImportAllEventsJSON)
+            {
+
+                Main.MainThreadLazyDispatch(() =>
+                {
+                    Tae.ShowImportAllEventsToJSONDialog();
+                });
+
             }
             else if (clicked_Tools_AnimNameExport)
             {

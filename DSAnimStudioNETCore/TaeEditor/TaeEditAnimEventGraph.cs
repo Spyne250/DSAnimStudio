@@ -1281,6 +1281,215 @@ namespace DSAnimStudio.TaeEditor
             return false;
         }
 
+        public string SingleAnimationExport()
+        {
+            TaeClipboardContents jsonString;
+
+            if (EventBoxes.Count > 0)
+            {
+                TaeClipboardContents.ParentGraph = this;
+                var events = EventBoxes;
+                float startTime = events.OrderBy(x => x.MyEvent.StartTime).First().MyEvent.StartTime;
+                int startRow = events.OrderBy(x => x.Row).First().Row;
+                jsonString = new TaeClipboardContents(events, startRow, startTime, MainScreen.SelectedTae.BigEndian);
+            }
+            else
+            {
+                return null;
+            }
+
+            Newtonsoft.Json.JsonSerializerSettings jsonSerializeCfg = new Newtonsoft.Json.JsonSerializerSettings
+            {
+                TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All,
+                Formatting = Newtonsoft.Json.Formatting.Indented
+            };
+
+            var textSerialize = Newtonsoft.Json.JsonConvert.SerializeObject(
+                jsonString, jsonSerializeCfg);
+
+            return textSerialize;
+        }
+
+        public bool SingleAnimationImport(string jsonText)
+        {
+
+            try
+            {
+
+                Newtonsoft.Json.JsonSerializerSettings jsonSerializeCfg = new Newtonsoft.Json.JsonSerializerSettings
+                {
+                    TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All,
+                    Formatting = Newtonsoft.Json.Formatting.Indented
+                };
+
+                TaeClipboardContents clipboardContents = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<TaeClipboardContents>(jsonText, jsonSerializeCfg);
+
+                var events = clipboardContents.GetEvents().ToList();
+
+                var copyOfEvents = new List<TaeEditAnimEventBox>();
+                var copyOfSelectedEventBoxes = new List<TaeEditAnimEventBox>();
+
+                var copyOfClipboardStartTime = clipboardContents.StartTime;
+
+                var copyOfEventStartTimes = new List<float>();
+                var copyOfEventEndTimes = new List<float>();
+                var copyOfEventRows = new List<int>();
+                var copyOfEventGroups = new List<TAE.EventGroup>();
+
+                foreach (var ev in events)
+                {
+                    copyOfEvents.Add(ev);
+                    copyOfEventStartTimes.Add(ev.MyEvent.StartTime);
+                    copyOfEventEndTimes.Add(ev.MyEvent.EndTime);
+                    copyOfEventRows.Add(ev.Row);
+                    copyOfEventGroups.Add(ev.MyEvent.Group);
+                }
+
+                DeleteMultipleEventBoxes(EventBoxes, true);
+
+                if (events.Any())
+                {
+                    MainScreen.SelectedEventBox = null;
+                    MainScreen.MultiSelectedEventBoxes.Clear();
+
+                    for (int i = 0; i < copyOfEvents.Count; i++)
+                    {
+                        var evBox = copyOfEvents[i];
+                        var ev = evBox.MyEvent;
+
+                        float startTime = copyOfEventStartTimes[i];
+                        float endTime = copyOfEventEndTimes[i];
+                        int row = copyOfEventRows[i];
+
+                        ev.StartTime = startTime;
+                        ev.EndTime = endTime;
+
+                        var box = PlaceNewEvent(ev, row, copyOfEventGroups[i], notUndoable: true, clipboardContents.IsBigEndian);
+                    }
+
+                    GenerateFakeDS3EventGroups(threadLock: true);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.ToString(), "Error During Import", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+
+            return false;
+        }
+
+        public string AllAnimationsExport()
+        {
+            TaeHktEvent taeHktEvent = new TaeHktEvent();
+
+            foreach (var taeKvp in MainScreen.AnimationListScreen.AnimTaeSections)
+            {
+                string taeName = taeKvp.Value.SectionName;
+                taeHktEvent[taeName] = new Dictionary<long, List<TaeHktEvent.SmallEvent>>();
+
+                foreach (var animKvp in taeKvp.Value.InfoMap)
+                {
+
+                    long id = animKvp.Key.ID;
+                    taeHktEvent[taeName][id] = new List<TaeHktEvent.SmallEvent>();
+
+                    foreach (var ev in animKvp.Key.Events)
+                    {
+
+                        taeHktEvent[taeName][id].Add(new TaeHktEvent.SmallEvent(ev.StartTime, ev.EndTime, ev.Type, ev.Unk04, ev.GetParameterBytes(false), false));
+                    }
+                }
+            }
+
+            Newtonsoft.Json.JsonSerializerSettings jsonSerializeCfg = new Newtonsoft.Json.JsonSerializerSettings
+            {
+                TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All,
+                Formatting = Newtonsoft.Json.Formatting.Indented
+            };
+
+            var textSerialize = Newtonsoft.Json.JsonConvert.SerializeObject(
+                taeHktEvent, jsonSerializeCfg);
+
+            return textSerialize;
+        }
+
+        public bool AllAnimationsImport(string jsonText)
+        {
+
+            try
+            {
+
+                
+                Newtonsoft.Json.JsonSerializerSettings jsonSerializeCfg = new Newtonsoft.Json.JsonSerializerSettings
+                {
+                    TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All,
+                    Formatting = Newtonsoft.Json.Formatting.Indented
+                };
+
+                TaeHktEvent importAllContents = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<TaeHktEvent>(jsonText, jsonSerializeCfg);
+
+                foreach (var taekvp in MainScreen.AnimationListScreen.AnimTaeSections)
+                {
+                    bool taeModif = false;
+                    string taename = taekvp.Value.SectionName;
+                    if (!importAllContents.ContainsKey(taename))
+                    {
+                        continue;
+                    }
+                    foreach (var hktkvp in taekvp.Value.InfoMap)
+                    {
+                        bool hktModif = false;
+                        long hktid = hktkvp.Key.ID;
+                        if (!importAllContents[taename].ContainsKey(hktid))
+                        {
+                            continue;
+                        }
+
+                        if (importAllContents[taename][hktid].Count > 0)
+                        {
+                            hktkvp.Key.Events = new List<TAE.Event>();
+                            hktkvp.Key.EventGroups = new List<TAE.EventGroup>();
+
+                            foreach (var smallEvent in importAllContents[taename][hktid])
+                            {
+                                TAE.Event ev = new TAE.Event(smallEvent.startTime, smallEvent.endTime, smallEvent.type, smallEvent.unk04, smallEvent.parameters, false);
+                                if (MainScreen.SelectedTae?.BankTemplate != null && ev.Template == null && MainScreen.SelectedTae.BankTemplate.ContainsKey(ev.Type))
+                                {
+                                    ev.ApplyTemplate(false, MainScreen.SelectedTae.BankTemplate[ev.Type]);
+                                }
+                                hktkvp.Key.Events.Add(ev);
+                            }
+                            hktModif = true;
+                            taeModif = true;
+
+                        }
+                        if (hktModif)
+                        {
+                            hktkvp.Key.SetIsModified(!MainScreen.IsReadOnlyFileMode);
+                            MainScreen.SelectNewAnimRef(taekvp.Value.Tae, hktkvp.Key);
+                        }
+                    }
+                    if (taeModif)
+                    {
+                        taekvp.Value.Tae.SetIsModified(!MainScreen.IsReadOnlyFileMode);
+                    }
+
+                }
+                return true;
+
+            }
+
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.ToString(), "Error During Import", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+
+            return false;
+        }
+
         public void UpdatePlaybackCursor(bool allowPlayPauseInput)
         {
             if (GhostEventGraph != null)
