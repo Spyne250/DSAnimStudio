@@ -29,9 +29,9 @@ The import function will load the json file and **overwrite** all the events for
 If you want to paste an event to multiple animations with a script, in Python for example.
 1. The event params in the json file are not in a readable format (well I can't read them), so we create it how you would normally create an event.
 2. Export all animations to json file
-3. Get the event you created (because you know the animation id of which it it a part of). You can do this in a script or manually.
-4. Append the event to the animation events lists you want, manually or in a script.
-5. Not necessary but highly recommended, remove any Tae and animations that you won't change. It speeds up the whole process.
+3. Get the event you created (because you know the animation id of which it is a part of). You can do this in a script or manually.
+4. Append the event to the animation events lists you want, manually or in a script. You can also edit the duration of the events.
+5. Not necessary but highly recommended, remove any Tae and animations that you won't change. It speeds up the whole process. Make sure to keep the $type key and value for the dictionaries you keep.
 
 # Improvements
 
