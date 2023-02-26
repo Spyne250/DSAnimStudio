@@ -1,6 +1,6 @@
 # Description
 
-This adds 4 menu items in the "tools" menu bar. Two for a single animation import/export and two for all animation event import/export.
+This adds 4 menu items in the "tools" menu bar. Two for a single animation import/export and two for all animation event import/export. Only tested for elden ring.
 
 ## !!PLEASE BACKUP ANY FILES THAT ARE IMPORTANT TO YOU (in the project)!!
 
